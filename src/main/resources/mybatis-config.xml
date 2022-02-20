@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <settings>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+    </settings>
+    <!--配置拦截器-->
+    <plugins>
+        <plugin interceptor="com.github.pagehelper.PageInterceptor">
+            <!--helperDialect：分页插件会自动检测当前的数据库链接，自动选择合适的分页方式。此处配置使用mysql数据库-->
+            <!--即使不配置这样一项,也是自动分页,因为JDBC已经配置了-->
+            <property name="helperDialect" value="mysql"/>
+            <!--分页合理化-->
+            <property name="reasonable" value="true"/>
+        </plugin>
+    </plugins>
+    <environments default="dev">
+        <environment id="dev">
+            <transactionManager type="JDBC"/>
+<!--            <dataSource type="POOLED">-->
+<!--                <property name="driver" value="com.mysql.jdbc.Driver"/>-->
+<!--                <property name="url" value="jdbc:mysql://127.0.0.1:3306/mybatisproj?useUnicode=yes&amp;characterEncoding=utf8"/>-->
+<!--                <property name="username" value="root"/>-->
+<!--                <property name="password" value="root123456"/>-->
+<!--            </dataSource>-->
+            <dataSource type="com.adam.mybatisS.utils.C3P0DataSourceFactory">
+                <property name="driverClass" value="com.mysql.jdbc.Driver"/>
+                <property name="jdbcUrl"
+                          value="jdbc:mysql://127.0.0.1:3306/mybatisproj?useUnicode=yes&amp;characterEncoding=utf8"/>
+                <property name="user" value="root"/>
+                <property name="password" value="root123456"/>
+                <property name="initialPoolSize" value="5"/>  <!--初始数据库连接数量-->
+                <property name="maxPoolSize" value="20"/>     <!--最大连接数量-->
+                <property name="minPoolSize" value="5"/>      <!--最小连接数量-->
+            </dataSource>
+        </environment>
+        <environment id="prod">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://148.70.251.110:3306/mybatisproj?useUnicode=yes&amp;characterEncoding=utf8"/>
+                <property name="username" value="root"/>
+                <property name="password" value="931548241"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <mapper resource="mappers/goods.xml"/>
+        <mapper resource="mappers/goods_detail.xml"/>
+        <!--<mapper class="com.adam.mybatisS.utils.GoodsDAO"/>-->
+        <package name="com.adam.mybatisS.utils"/>
+    </mappers>
+</configuration>

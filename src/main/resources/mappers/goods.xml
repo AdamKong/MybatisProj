@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="goods">
+    <cache eviction="LRU" flushInterval="600000" size="512" readOnly="true"/>
+    <!--namespace对应某个命名空间，这样就知道去那个文件查找关联-->
+    <!--resultType：在SQL语句执行完成之后，会将每一个结果包装成指定的对象-->
+    <select id="selectAll" resultType="com.adam.mybatisS.entity.Goods">
+        select * from t_goods order by goods_id desc limit 10
+    </select>
+    <select id="selectById" parameterType="Integer" resultType="com.adam.mybatisS.entity.Goods">
+        select * from t_goods where goods_id = #{value}
+    </select>
+    <select id="selectByPriceRange" parameterType="java.util.Map" resultType="com.adam.mybatisS.entity.Goods">
+        select * from t_goods
+        where current_price between #{min} and #{max}
+        order by current_price limit 0,{limit}
+    </select>
+    <select id="selectByTitle" parameterType="java.util.Map" resultType="com.adam.mybatisS.entity.Goods">
+        select * from t_goods where title = ${title}
+    </select>
+    <select id="dynamicSQL" parameterType="java.util.Map" resultType="com.adam.mybatisS.entity.Goods">
+        select * from t_goods
+        <where>
+            <if test="categoryId != null">
+                and category_id = #{categoryId}
+            </if>
+            <if test="currentPrice != null">
+                and current_price &lt; #{currentPrice}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" parameterType="com.adam.mybatisS.entity.Goods">
+        INSERT INTO t_goods(title,sub_title,original_cost,current_price,discount,is_free_delivery,category_id) VALUES (#{title}, #{subTitle}, #{originalCost}, #{currentPrice}, #{discount}, #{isFreeDelivery}, #{categoryId});    <!--如果需要获取最后插入数据的ID，需要添加如下代码-->
+        <!--resultType返回值类型，keyProperty返回值绑定属性，order执行顺序，在插入语句之前还是之后-->
+        <selectKey resultType="Integer" keyProperty="goodsId" order="AFTER">
+            <!--当前连接最后产生的ID号，回填到goodsId属性中-->
+            select last_insert_id()
+        </selectKey>
+    </insert>
+
+    <update id="update" parameterType="com.adam.mybatisS.entity.Goods">
+        UPDATE t_goods SET
+        title = #{title},
+        sub_title = #{subTitle},
+        original_cost = #{originalCost},
+        current_price = #{currentPrice},
+        discount = #{discount},
+        is_free_delivery = #{isFreeDelivery},
+        category_id = #{categoryId}
+        where goods_id = #{goodsId}
+    </update>
+
+    <delete id="delete" parameterType="Integer">
+        delete from t_goods where goods_id = #{value}
+    </delete>
+
+    <resultMap id="rmGoods" type="com.adam.mybatisS.entity.Goods">
+        <!--column主键字段 property对应对象中属性名-->
+        <id column="goods_id" property="goodsId"></id>
+        <!--collection集合的意思,描述数据的来源-->
+        <!--property填充到goods对象的那个属性-->
+        <!--select使用那个关联查询语句-->
+        <!--column关联列-->
+        <collection property="goodsDetails" select="goodsDetail.selectByGoodsId" column="goods_Id"/>
+    </resultMap>
+    <!--resultMap结果映射,然后找个这个resultMap-->
+    <select id="selectOneToMany" resultMap="rmGoods">
+        select * from t_goods limit 0,5
+    </select>
+
+    <select id="selectPage" resultType="com.adam.mybatisS.entity.Goods">
+        select * from t_goods where current_price &lt; 1000
+    </select>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO t_goods(title,sub_title,original_cost,current_price,discount,is_free_delivery,category_id)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.title}, #{item.subTitle}, #{item.originalCost}, #{item.currentPrice}, #{item.discount}, #{item.isFreeDelivery}, #{item.categoryId})
+        </foreach>
+    </insert>
+
+</mapper>
